@@ -1,0 +1,11 @@
+{
+  "name": "jnt-order-intake",
+  "version": "1.0.0",
+  "description": "Buyer order form + admin panel that mirrors the J&T recipient form and exports J&T bulk-upload CSV.",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "express": "^4.19.2"
+  }
+}

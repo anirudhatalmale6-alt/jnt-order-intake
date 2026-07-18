@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Order Form</title>
+<style>
+  :root{ --red:#e1140f; --red2:#c20f0b; --ink:#222; --mut:#8a8a8a; --line:#e3e3e3; --bg:#f5f6f8; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--ink); }
+  .wrap{ max-width:560px; margin:0 auto; min-height:100vh; background:#fff; }
+  .top{ background:var(--red); color:#fff; padding:18px 20px; }
+  .top h1{ margin:0; font-size:18px; font-weight:700; }
+  .top p{ margin:4px 0 0; font-size:12px; opacity:.9; }
+  .body{ padding:20px; }
+  .sec{ font-size:13px; font-weight:700; letter-spacing:.3px; color:#333; margin:6px 0 14px; }
+  .sec small{ font-weight:400; color:var(--mut); margin-left:6px; }
+  label{ display:block; font-size:14px; margin:16px 0 6px; }
+  label .req{ color:var(--red); margin-right:3px; }
+  input,select,textarea{ width:100%; font-size:15px; padding:11px 12px; border:1px solid var(--line);
+    border-radius:8px; background:#fff; color:var(--ink); outline:none; }
+  input:focus,select:focus,textarea:focus{ border-color:var(--red); }
+  textarea{ resize:vertical; min-height:70px; }
+  .phone{ display:flex; align-items:stretch; }
+  .phone .cc{ display:flex; align-items:center; padding:0 12px; border:1px solid var(--line); border-right:0;
+    border-radius:8px 0 0 8px; background:#fafafa; color:#555; font-size:15px; }
+  .phone input{ border-radius:0 8px 8px 0; }
+  .grid3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .btn{ width:100%; margin-top:22px; padding:14px; border:0; border-radius:24px; background:var(--red);
+    color:#fff; font-size:16px; font-weight:700; cursor:pointer; }
+  .btn:active{ background:var(--red2); }
+  .btn:disabled{ opacity:.6; cursor:default; }
+  .err{ color:var(--red); font-size:13px; margin-top:12px; min-height:16px; }
+  .hint{ font-size:12px; color:var(--mut); margin-top:4px; }
+  /* success */
+  .done{ text-align:center; padding:50px 24px; }
+  .check{ width:64px; height:64px; border-radius:50%; background:#e8f7ec; color:#1a9c46;
+    display:flex; align-items:center; justify-content:center; font-size:34px; margin:0 auto 16px; }
+  .done h2{ margin:0 0 8px; }
+  .ref{ display:inline-block; margin-top:6px; font-weight:700; font-size:20px; letter-spacing:1px;
+    background:#fff3f3; color:var(--red); padding:8px 16px; border-radius:8px; }
+  .done p{ color:#555; font-size:14px; line-height:1.5; }
+  @media (max-width:420px){ .grid3{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1 id="shop">Order Form</h1>
+    <p>Fill in your delivery details below. We ship via J&amp;T Express.</p>
+  </div>
+
+  <div class="body" id="form-body">
+    <div class="sec">RECIPIENT INFORMATION <small>* marks are required</small></div>
+
+    <label><span class="req">*</span>Name</label>
+    <input id="name" placeholder="Please fill in the Name" maxlength="120">
+
+    <label><span class="req">*</span>Phone</label>
+    <div class="phone">
+      <span class="cc">+63</span>
+      <input id="phone" inputmode="numeric" placeholder="9XX XXX XXXX" maxlength="12">
+    </div>
+    <div class="hint">Enter your 10-digit mobile number (without the leading 0).</div>
+
+    <label><span class="req">*</span>Province / City / Barangay</label>
+    <div class="grid3">
+      <select id="province"><option value="">Province</option></select>
+      <select id="city"><option value="">City</option></select>
+      <select id="barangay"><option value="">Barangay</option></select>
+    </div>
+
+    <label><span class="req">*</span>Detailed Address</label>
+    <textarea id="address" placeholder="House / unit no., street, landmark" maxlength="300"></textarea>
+
+    <div class="sec" style="margin-top:26px">ORDER DETAILS</div>
+    <div class="row2">
+      <div>
+        <label>Item</label>
+        <input id="item" placeholder="e.g. Cargo pants" maxlength="160">
+      </div>
+      <div>
+        <label>Size</label>
+        <input id="size" placeholder="e.g. 32 / L" maxlength="40">
+      </div>
+    </div>
+    <div class="row2">
+      <div>
+        <label>Quantity</label>
+        <input id="qty" type="number" min="1" value="1">
+      </div>
+      <div>
+        <label>Payment</label>
+        <select id="payment">
+          <option value="COD">Cash on Delivery (COD)</option>
+          <option value="GCash">GCash</option>
+          <option value="Bank">Bank Transfer</option>
+          <option value="Paid">Already Paid</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Note <small style="color:#8a8a8a">(optional)</small></label>
+    <textarea id="note" placeholder="Anything we should know?" maxlength="500"></textarea>
+
+    <div class="err" id="err"></div>
+    <button class="btn" id="submit">Submit Order</button>
+  </div>
+
+  <div class="done" id="done" style="display:none">
+    <div class="check">&#10003;</div>
+    <h2>Order received!</h2>
+    <p>Thank you. We have your order and will arrange delivery via J&amp;T Express.<br>
+       Keep this reference number:</p>
+    <div class="ref" id="ref"></div>
+    <p style="margin-top:20px">You can screenshot this and send it to the seller.</p>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+// works whether the app is served at / or behind an nginx subpath like /order/
+const BASE = location.pathname.replace(/[^/]*$/, '');
+async function jget(u){ const r = await fetch(BASE + u); return r.json(); }
+
+(async () => {
+  try { const s = await jget('api/shop'); if (s.shop_name) $('shop').textContent = s.shop_name; } catch(e){}
+  const provs = await jget('api/locations/provinces');
+  for (const p of provs){ const o = document.createElement('option'); o.value = o.textContent = p; $('province').appendChild(o); }
+})();
+
+function fill(sel, items, placeholder){
+  sel.innerHTML = '<option value="">' + placeholder + '</option>';
+  for (const it of items){ const o = document.createElement('option'); o.value = o.textContent = it; sel.appendChild(o); }
+}
+$('province').addEventListener('change', async () => {
+  fill($('city'), [], 'City'); fill($('barangay'), [], 'Barangay');
+  if (!$('province').value) return;
+  fill($('city'), await jget('api/locations/cities?province=' + encodeURIComponent($('province').value)), 'City');
+});
+$('city').addEventListener('change', async () => {
+  fill($('barangay'), [], 'Barangay');
+  if (!$('city').value) return;
+  fill($('barangay'), await jget('api/locations/barangays?province=' +
+    encodeURIComponent($('province').value) + '&city=' + encodeURIComponent($('city').value)), 'Barangay');
+});
+
+$('submit').addEventListener('click', async () => {
+  $('err').textContent = '';
+  const payload = {
+    buyer_name: $('name').value, phone: $('phone').value,
+    province: $('province').value, city: $('city').value, barangay: $('barangay').value,
+    address: $('address').value, item: $('item').value, size: $('size').value,
+    qty: $('qty').value, payment: $('payment').value, note: $('note').value
+  };
+  if (!payload.buyer_name.trim()) return $('err').textContent = 'Please enter your name.';
+  if (!payload.province) return $('err').textContent = 'Please choose your province.';
+  if (!payload.city) return $('err').textContent = 'Please choose your city / municipality.';
+  if (!payload.address.trim()) return $('err').textContent = 'Please enter your detailed address.';
+  $('submit').disabled = true; $('submit').textContent = 'Submitting...';
+  try {
+    const r = await fetch(BASE + 'api/order', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const d = await r.json();
+    if (!r.ok){ $('err').textContent = d.error || 'Something went wrong.'; $('submit').disabled = false; $('submit').textContent = 'Submit Order'; return; }
+    $('ref').textContent = d.ref;
+    $('form-body').style.display = 'none';
+    $('done').style.display = 'block';
+    window.scrollTo(0,0);
+  } catch(e){
+    $('err').textContent = 'Network error, please try again.';
+    $('submit').disabled = false; $('submit').textContent = 'Submit Order';
+  }
+});
+</script>
+</body>
+</html>

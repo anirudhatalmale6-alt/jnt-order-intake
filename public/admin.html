@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orders Admin</title>
+<style>
+  :root{ --red:#e1140f; --ink:#1c1c22; --mut:#6b7280; --line:#e6e6ee; --bg:#f3f4f7; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--ink); }
+  header{ background:#fff; border-bottom:1px solid var(--line); padding:12px 18px; display:flex; align-items:center; gap:12px; }
+  header h1{ font-size:16px; margin:0; }
+  header .sp{ flex:1; }
+  .btn{ border:0; border-radius:8px; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; }
+  .btn.red{ background:var(--red); color:#fff; }
+  .btn.g{ background:#eceef3; color:#333; }
+  .btn.green{ background:#e8f7ec; color:#1a9c46; }
+  .btn.ghost{ background:transparent; color:var(--mut); }
+  .btn.sm{ padding:5px 10px; font-size:12px; }
+  .wrap{ max-width:1100px; margin:18px auto; padding:0 16px; }
+  .tabs{ display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+  .tab{ padding:7px 14px; border-radius:20px; background:#fff; border:1px solid var(--line); font-size:13px; cursor:pointer; }
+  .tab.on{ background:var(--red); color:#fff; border-color:var(--red); }
+  .card{ background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  th,td{ text-align:left; padding:11px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ background:#fafafc; color:#555; font-weight:600; font-size:12px; }
+  tr:last-child td{ border-bottom:0; }
+  .pill{ display:inline-block; padding:2px 9px; border-radius:12px; font-size:11px; font-weight:600; }
+  .pill.pending{ background:#fff4e0; color:#b8791a; }
+  .pill.approved{ background:#e6f5ea; color:#1a9c46; }
+  .pill.rejected{ background:#fdeaea; color:#d43535; }
+  .pill.shipped{ background:#e8effd; color:#2b62d0; }
+  .muted{ color:var(--mut); font-size:12px; }
+  .empty{ text-align:center; color:var(--mut); padding:40px; }
+  /* login */
+  .login{ max-width:340px; margin:80px auto; background:#fff; border:1px solid var(--line); border-radius:14px; padding:26px; }
+  .login h2{ margin:0 0 4px; } .login p{ margin:0 0 18px; color:var(--mut); font-size:13px; }
+  .login input{ width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:8px; margin-bottom:10px; font-size:15px; }
+  .login .btn{ width:100%; }
+  .err{ color:var(--red); font-size:13px; min-height:16px; }
+  /* modal */
+  .mask{ position:fixed; inset:0; background:rgba(0,0,0,.4); display:none; align-items:center; justify-content:center; padding:16px; }
+  .mask.on{ display:flex; }
+  .modal{ background:#fff; border-radius:14px; max-width:560px; width:100%; max-height:88vh; overflow:auto; padding:22px; }
+  .modal h3{ margin:0 0 14px; }
+  .pair{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .box{ border:1px solid var(--line); border-radius:10px; padding:12px; }
+  .box h4{ margin:0 0 8px; font-size:12px; color:var(--red); letter-spacing:.4px; }
+  .kv{ font-size:13px; margin:3px 0; } .kv b{ color:#333; }
+  .sform label{ display:block; font-size:13px; margin:12px 0 5px; }
+  .sform input{ width:100%; padding:10px 11px; border:1px solid var(--line); border-radius:8px; font-size:14px; }
+  @media (max-width:640px){ .pair{ grid-template-columns:1fr; } .hidecol{ display:none; } }
+</style>
+</head>
+<body>
+
+<div id="login-view">
+  <div class="login">
+    <h2>Orders Admin</h2>
+    <p>Sign in to manage your orders.</p>
+    <input id="u" placeholder="Username" autocomplete="username">
+    <input id="p" type="password" placeholder="Password" autocomplete="current-password">
+    <div class="err" id="lerr"></div>
+    <button class="btn red" id="login">Sign in</button>
+  </div>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <h1>Orders Admin</h1>
+    <span class="pill approved" id="count"></span>
+    <div class="sp"></div>
+    <button class="btn g sm" id="settings-btn">Sender info</button>
+    <button class="btn g sm" id="export-btn">Export approved (CSV)</button>
+    <button class="btn ghost sm" id="logout">Logout</button>
+  </header>
+  <div class="wrap">
+    <div class="tabs" id="tabs"></div>
+    <div class="card"><table>
+      <thead><tr>
+        <th>Ref</th><th>Buyer</th><th>Phone</th><th class="hidecol">Destination</th>
+        <th class="hidecol">Item</th><th>Status</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- order detail modal -->
+<div class="mask" id="detail-mask">
+  <div class="modal">
+    <h3 id="d-title">Order</h3>
+    <div class="pair">
+      <div class="box"><h4>SENDER (you)</h4><div id="d-sender"></div></div>
+      <div class="box"><h4>RECIPIENT</h4><div id="d-recip"></div></div>
+    </div>
+    <div class="box" style="margin-top:14px"><h4>PARCEL</h4><div id="d-parcel"></div></div>
+    <div style="margin-top:18px; text-align:right">
+      <button class="btn g" id="d-close">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- settings modal -->
+<div class="mask" id="set-mask">
+  <div class="modal">
+    <h3>Sender / Shop info</h3>
+    <p class="muted">This is fixed on every order. Buyers never see or edit it.</p>
+    <div class="sform">
+      <label>Shop name (shown on the buyer form)</label><input id="s-shop">
+      <label>Sender name</label><input id="s-name">
+      <label>Sender phone</label><input id="s-phone" placeholder="+63...">
+      <label>Province</label><input id="s-province">
+      <label>City / Municipality</label><input id="s-city">
+      <label>Barangay</label><input id="s-barangay">
+      <label>Detailed pickup address</label><input id="s-address">
+    </div>
+    <div class="err" id="serr"></div>
+    <div style="margin-top:16px; text-align:right">
+      <button class="btn g" id="s-cancel">Cancel</button>
+      <button class="btn red" id="s-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+// works whether served at / or behind an nginx subpath like /order/
+const BASE = location.pathname.replace(/[^/]*$/, '');
+let TOKEN = localStorage.getItem('jnt_admin_token') || '';
+let TAB = 'all';
+const H = () => ({ 'Content-Type':'application/json', 'X-Admin-Token': TOKEN });
+
+async function api(u, opts){ const r = await fetch(BASE + u, opts); if (r.status === 401){ logout(); throw new Error('unauthorized'); } return r; }
+function logout(){ localStorage.removeItem('jnt_admin_token'); TOKEN=''; $('app').style.display='none'; $('login-view').style.display='block'; }
+
+$('login').addEventListener('click', async () => {
+  $('lerr').textContent = '';
+  const r = await fetch(BASE + 'admin/login', { method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ user: $('u').value, pass: $('p').value }) });
+  const d = await r.json();
+  if (!r.ok){ $('lerr').textContent = d.error || 'Login failed'; return; }
+  TOKEN = d.token; localStorage.setItem('jnt_admin_token', TOKEN);
+  start();
+});
+$('logout').addEventListener('click', logout);
+
+const TAB_DEFS = [['all','All'],['pending','New / Pending'],['approved','Approved'],['shipped','Shipped'],['rejected','Rejected']];
+function renderTabs(){
+  $('tabs').innerHTML = '';
+  for (const [k,label] of TAB_DEFS){
+    const el = document.createElement('div'); el.className = 'tab' + (TAB===k?' on':''); el.textContent = label;
+    el.onclick = () => { TAB = k; renderTabs(); load(); };
+    $('tabs').appendChild(el);
+  }
+}
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+async function load(){
+  const r = await api('api/orders?status=' + TAB, { headers: H() });
+  const rows = await r.json();
+  const pend = (await (await api('api/orders?status=pending', { headers:H() })).json()).length;
+  $('count').textContent = pend + ' new';
+  const tb = $('rows'); tb.innerHTML = '';
+  if (!rows.length){ tb.innerHTML = '<tr><td colspan="7" class="empty">No orders here yet.</td></tr>'; return; }
+  for (const o of rows){
+    const tr = document.createElement('tr');
+    const dest = esc(o.barangay ? o.barangay + ', ' : '') + esc(o.city) + ', ' + esc(o.province);
+    tr.innerHTML =
+      '<td><b>'+esc(o.id)+'</b><div class="muted">'+new Date(o.created_at).toLocaleString()+'</div></td>'+
+      '<td>'+esc(o.buyer_name)+'</td>'+
+      '<td>'+esc(o.phone)+'</td>'+
+      '<td class="hidecol"><div>'+dest+'</div><div class="muted">'+esc(o.address)+'</div></td>'+
+      '<td class="hidecol">'+esc(o.item||'—')+(o.size?' ('+esc(o.size)+')':'')+' ×'+o.qty+'</td>'+
+      '<td><span class="pill '+o.status+'">'+o.status+'</span></td>'+
+      '<td></td>';
+    const act = tr.children[6];
+    const view = mk('button','btn g sm','View'); view.onclick = () => showDetail(o.id, o.buyer_name); act.appendChild(view);
+    if (o.status === 'pending'){
+      const ap = mk('button','btn green sm','Approve'); ap.style.marginLeft='6px';
+      ap.onclick = () => setStatus(o.id,'approved'); act.appendChild(ap);
+      const rj = mk('button','btn ghost sm','Reject'); rj.onclick = () => setStatus(o.id,'rejected'); act.appendChild(rj);
+    } else if (o.status === 'approved'){
+      const sh = mk('button','btn g sm','Mark shipped'); sh.style.marginLeft='6px';
+      sh.onclick = () => setStatus(o.id,'shipped'); act.appendChild(sh);
+    }
+    tb.appendChild(tr);
+  }
+}
+function mk(t,c,txt){ const e=document.createElement(t); e.className=c; e.textContent=txt; return e; }
+
+async function setStatus(id, status){
+  await api('api/orders/'+id+'/status', { method:'POST', headers:H(), body: JSON.stringify({ status }) });
+  load();
+}
+
+async function showDetail(id, name){
+  const d = await (await api('api/orders/'+id+'/jnt', { headers:H() })).json();
+  $('d-title').textContent = 'Order ' + id;
+  const line = (o) => {
+    const addr = [o.address, o.barangay, o.city, o.province].filter(Boolean).join(', ');
+    return '<div class="kv"><b>'+esc(o.name||'—')+'</b></div>'+
+           '<div class="kv">'+esc(o.phone||'—')+'</div>'+
+           '<div class="kv">'+esc(addr||'—')+'</div>';
+  };
+  $('d-sender').innerHTML = line(d.sender) || '—';
+  $('d-recip').innerHTML = line(d.recipient);
+  const p = d.parcel;
+  $('d-parcel').innerHTML =
+    '<div class="kv"><b>Item:</b> '+esc(p.item||'—')+(p.size?' ('+esc(p.size)+')':'')+'</div>'+
+    '<div class="kv"><b>Qty:</b> '+esc(p.qty)+'</div>'+
+    '<div class="kv"><b>Amount:</b> '+esc(p.amount||'—')+'</div>'+
+    '<div class="kv"><b>Payment:</b> '+esc(p.payment||'—')+'</div>'+
+    '<div class="kv"><b>Note:</b> '+esc(p.note||'—')+'</div>';
+  if (!d.sender.name) $('d-sender').innerHTML = '<div class="muted">Set your sender info in "Sender info" first.</div>';
+  $('detail-mask').classList.add('on');
+}
+$('d-close').onclick = () => $('detail-mask').classList.remove('on');
+
+$('export-btn').addEventListener('click', async () => {
+  const r = await api('api/export.csv', { headers: { 'X-Admin-Token': TOKEN } });
+  const blob = await r.blob(); const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'jnt-orders.csv'; a.click(); URL.revokeObjectURL(url);
+});
+
+// settings
+$('settings-btn').addEventListener('click', async () => {
+  const s = await (await api('api/settings', { headers:H() })).json();
+  $('s-shop').value = s.shop_name||''; $('s-name').value = s.sender_name||'';
+  $('s-phone').value = s.sender_phone||''; $('s-province').value = s.sender_province||'';
+  $('s-city').value = s.sender_city||''; $('s-barangay').value = s.sender_barangay||'';
+  $('s-address').value = s.sender_address||'';
+  $('set-mask').classList.add('on');
+});
+$('s-cancel').onclick = () => $('set-mask').classList.remove('on');
+$('s-save').onclick = async () => {
+  const body = { shop_name:$('s-shop').value, sender_name:$('s-name').value, sender_phone:$('s-phone').value,
+    sender_province:$('s-province').value, sender_city:$('s-city').value, sender_barangay:$('s-barangay').value,
+    sender_address:$('s-address').value };
+  await api('api/settings', { method:'POST', headers:H(), body: JSON.stringify(body) });
+  $('set-mask').classList.remove('on');
+};
+
+function start(){ $('login-view').style.display='none'; $('app').style.display='block'; renderTabs(); load(); }
+if (TOKEN) start();
+</script>
+</body>
+</html>
